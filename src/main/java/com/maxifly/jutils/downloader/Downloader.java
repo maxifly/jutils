@@ -11,7 +11,9 @@ import java.util.concurrent.*;
 /**
  * Created by Maximus on 02.06.2016.
  */
-public class Downloader {
+public class Downloader
+implements AutoCloseable
+{
     private ExecutorService es;
     private Map<Download, Future<DownStatus>> tasks = new HashMap();
 
@@ -20,6 +22,10 @@ public class Downloader {
     }
 
     public void startTask(Download download) {
+        if (es == null) {
+            es = Executors.newFixedThreadPool(5);
+        }
+
         Future<DownStatus> future = es.submit(download);
         tasks.put(download, future);
     }
@@ -59,4 +65,23 @@ public class Downloader {
 
     }
 
+    @Override
+    public void close() throws Exception {
+        try {
+            System.out.println("attempt to shutdown executor");
+            es.shutdown();
+            es.awaitTermination(5, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException e) {
+            System.err.println("tasks interrupted");
+        }
+        finally {
+            if (!es.isTerminated()) {
+                System.err.println("cancel non-finished tasks");
+            }
+            es.shutdownNow();
+            System.out.println("shutdown finished");
+        }
+        es = null;
+    }
 }

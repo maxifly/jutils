@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutionException;
 
 public class DownloadTest {
     @Test
-    public void testDownload() throws MalformedURLException, ExecutionException, InterruptedException {
+    public void testDownload() throws Exception {
         URL url = new URL("https://github.com/maxifly/time-calculator/releases/download/v1.2/calc_t.exe");
 
         Download download = new Download(url, "c:/kuku/testFile");
@@ -27,6 +27,8 @@ public class DownloadTest {
         }
 
         Assert.assertTrue(i<101);
+
+        downloader.close();
 
 
     }
