@@ -42,9 +42,12 @@ implements AutoCloseable
 
     public boolean checkTasks() throws ExecutionException, InterruptedException {
         boolean steelExecute = false;
+        all_tasks = 0;
+        complete_task = 0;
 
         Set<Download> restart = new HashSet<>();
         for (Map.Entry<Download, Future<DownStatus>> entry : tasks.entrySet()) {
+            all_tasks++;
             Future<DownStatus> future = entry.getValue();
             Download download = entry.getKey();
             if (future.isDone()) {

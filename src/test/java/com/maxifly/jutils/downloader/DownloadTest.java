@@ -21,7 +21,7 @@ public class DownloadTest {
         TstProgress tstProgress = new TstProgress();
         TstProgress downloadProgress = new TstProgress();
         download.setProgress(downloadProgress);
-        downloader.setProgress(tstProgress);
+        downloader.setProgressMonitor(tstProgress);
 
         downloader.startTask(download);
 
