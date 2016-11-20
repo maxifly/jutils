@@ -25,7 +25,7 @@ implements AutoCloseable
         es = Executors.newFixedThreadPool(5);
     }
 
-    public void setProgress(I_Progress progress) {
+    public void setProgressMonitor(I_Progress progress) {
         this.progress = progress;
     }
 
