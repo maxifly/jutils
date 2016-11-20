@@ -18,7 +18,13 @@ public class DownloadTest {
 
         Download download = new Download(url, "c:/kuku/testFile");
         Downloader downloader = new Downloader();
+        TstProgress tstProgress = new TstProgress();
+        TstProgress downloadProgress = new TstProgress();
+        download.setProgress(downloadProgress);
+        downloader.setProgress(tstProgress);
+
         downloader.startTask(download);
+
 
         int i = 1;
         while (downloader.checkTasks() != true && i < 101) {
@@ -26,10 +32,16 @@ public class DownloadTest {
             i++;
         }
 
-        Assert.assertTrue(i<101);
-
         downloader.close();
 
+        Assert.assertTrue(i<101);
+
+        Assert.assertEquals(1,tstProgress.max);
+        Assert.assertEquals(1,tstProgress.done);
+        Assert.assertNotNull(tstProgress.mess);
+        Assert.assertTrue((downloadProgress.max>1));
+        Assert.assertTrue((downloadProgress.done>1));
+        Assert.assertNotNull(tstProgress.mess);
 
     }
 

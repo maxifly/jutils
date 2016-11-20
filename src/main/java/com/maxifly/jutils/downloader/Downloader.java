@@ -1,5 +1,6 @@
 package com.maxifly.jutils.downloader;
 
+import com.maxifly.jutils.I_Progress;
 import com.maxifly.jutils.downloader.Download;
 
 import java.util.HashMap;
@@ -16,9 +17,16 @@ implements AutoCloseable
 {
     private ExecutorService es;
     private Map<Download, Future<DownStatus>> tasks = new HashMap();
+    private I_Progress progress = null;
+    private int complete_task = 0;
+    private int all_tasks = 0;
 
     public Downloader() {
         es = Executors.newFixedThreadPool(5);
+    }
+
+    public void setProgress(I_Progress progress) {
+        this.progress = progress;
     }
 
     public void startTask(Download download) {
@@ -28,6 +36,8 @@ implements AutoCloseable
 
         Future<DownStatus> future = es.submit(download);
         tasks.put(download, future);
+        all_tasks++;
+        change_progress();
     }
 
     public boolean checkTasks() throws ExecutionException, InterruptedException {
@@ -39,7 +49,8 @@ implements AutoCloseable
             Download download = entry.getKey();
             if (future.isDone()) {
                 if (future.get() == DownStatus.COMPLITE) {
-                    System.out.println("Download " + download.getUrl().getPath() + " complete");
+                     System.out.println("Download " + download.getUrl().getPath() + " complete");
+                    complete_task++;
                 } else {
                     System.out.println("Download " + download.getUrl().getPath() + " not complete");
                     restart.add(download);
@@ -54,6 +65,8 @@ implements AutoCloseable
                 steelExecute = true;
             }
         }
+
+        change_progress();
 
         // Теперь рестартуем
         for (Download download : restart) {
@@ -84,4 +97,11 @@ implements AutoCloseable
         }
         es = null;
     }
+
+    private void change_progress() {
+        if (progress != null) {
+           progress.updateProgress(complete_task,all_tasks,"Загружено " + complete_task + " из " + all_tasks);
+        }
+    }
+
 }

@@ -1,10 +1,13 @@
 package com.maxifly.jutils.downloader;
 
+import com.maxifly.jutils.I_Progress;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
 /**
@@ -12,7 +15,7 @@ import java.util.concurrent.Callable;
  */
 public class Download implements Callable<DownStatus> {
 
-    private static final int MAX_BUFFER_SIZE = 10; //1024;
+    private static final int MAX_BUFFER_SIZE = 1024;
 
 
     private URL url;
@@ -21,10 +24,24 @@ public class Download implements Callable<DownStatus> {
     private int size;
     private int downloaded;
     private DownStatus status;
+    private I_Progress progress = null;
+    private String srcFileName = null;
+    private Integer bufferSize;
 
     public Download(URL url, String destFileName) {
         super();
+        this.bufferSize = MAX_BUFFER_SIZE;
         this.prepare(url, new File(destFileName));
+    }
+
+    public Download(URL url, String destFileName, int bufferSize) {
+        super();
+        this.bufferSize = bufferSize;
+        this.prepare(url, new File(destFileName));
+    }
+
+    public void setProgress(I_Progress progress) {
+        this.progress = progress;
     }
 
     public Download(URL url, File destFile) {
@@ -39,6 +56,7 @@ public class Download implements Callable<DownStatus> {
     private void prepare(URL url, File destFile) {
         this.url = url;
         this.destFile = destFile;
+        this.srcFileName = (new File(url.getFile())).getName();
         size = -1;
         downloaded = 0;
         status = DownStatus.DOWNLOADING;
@@ -46,6 +64,7 @@ public class Download implements Callable<DownStatus> {
 
     @Override
     public DownStatus call() throws Exception {
+
         RandomAccessFile file = null;
         InputStream stream = null;
 
@@ -77,8 +96,8 @@ public class Download implements Callable<DownStatus> {
             stream = connection.getInputStream();
             while (status == DownStatus.DOWNLOADING) {
                 byte buffer[];
-                if (size - downloaded > MAX_BUFFER_SIZE) {
-                    buffer = new byte[MAX_BUFFER_SIZE];
+                if (size - downloaded > this.bufferSize) {
+                    buffer = new byte[this.bufferSize];
                 } else {
                     buffer = new byte[size - downloaded];
                 }
@@ -89,6 +108,7 @@ public class Download implements Callable<DownStatus> {
 
                 file.write(buffer, 0, read);
                 downloaded += read;
+                change_progress();
             }
 
             System.out.println("downloaded "+downloaded);
@@ -118,4 +138,10 @@ public class Download implements Callable<DownStatus> {
         return status;
     }
 
+
+    private void change_progress() {
+        if (progress != null && size > 0) {
+           progress.updateProgress(downloaded,size,srcFileName + " (" + downloaded + " из " + size +")");
+        }
+    }
 }
