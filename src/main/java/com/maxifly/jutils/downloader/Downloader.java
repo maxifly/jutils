@@ -15,6 +15,7 @@ import java.util.concurrent.*;
 public class Downloader
 implements AutoCloseable
 {
+    private int pool_size;
     private ExecutorService es;
     private Map<Download, Future<DownStatus>> tasks = new HashMap();
     private I_Progress progress = null;
@@ -22,7 +23,11 @@ implements AutoCloseable
     private int all_tasks = 0;
 
     public Downloader() {
-        es = Executors.newFixedThreadPool(5);
+       this.pool_size = 5;
+    }
+
+    public Downloader(int pool_size) {
+        this.pool_size = pool_size;
     }
 
     public void setProgressMonitor(I_Progress progress) {
@@ -31,7 +36,7 @@ implements AutoCloseable
 
     public void startTask(Download download) {
         if (es == null) {
-            es = Executors.newFixedThreadPool(5);
+            es = Executors.newFixedThreadPool(pool_size);
         }
 
         Future<DownStatus> future = es.submit(download);
